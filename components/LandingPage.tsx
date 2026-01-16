@@ -135,9 +135,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
           </div>
 
           {/* Scroll Indicator */}
-          <div className="flex flex-col items-center gap-2 mt-8 animate-bounce opacity-70 group cursor-pointer" onClick={() => window.scrollTo({ top: 800, behavior: 'smooth' })}>
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] group-hover:text-primary transition-colors">Role para iniciar</span>
-            <ChevronDown className="text-slate-400 w-6 h-6 group-hover:text-primary transition-colors" />
+          <div className="flex flex-col items-center gap-2 mt-8 animate-bounce group cursor-pointer" onClick={() => window.scrollTo({ top: 800, behavior: 'smooth' })}>
+            <span className="text-[15px] font-bold text-primary uppercase tracking-[0.2em] transition-colors">Role para iniciar</span>
+            <ChevronDown className="text-primary w-6 h-6 transition-colors" />
           </div>
         </div>
 
