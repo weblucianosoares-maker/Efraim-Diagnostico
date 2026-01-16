@@ -63,6 +63,7 @@ export const QuizPage: React.FC<QuizPageProps> = ({ onFinish, teamSize }) => {
     if (!showLeadForm) {
       const mainContent = document.getElementById('main-content');
       if (mainContent) mainContent.scrollTop = 0;
+      window.scrollTo(0, 0);
     }
   }, [currentSectionIndex, showLeadForm]);
 
