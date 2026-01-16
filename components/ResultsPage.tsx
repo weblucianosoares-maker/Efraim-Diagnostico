@@ -200,10 +200,13 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ answers, leadData, onN
           {/* Prominent Maturity Display */}
           <div className={`p-8 rounded-2xl border-2 ${maturityLevel.bg} ${maturityLevel.border} flex flex-col items-center text-center relative overflow-hidden`}>
             {loadingAI && (
-              <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center p-6 text-center">
-                <Brain className="w-12 h-12 text-primary animate-pulse mb-4" />
-                <p className="text-lg font-bold text-slate-800 animate-pulse">A IA da Efraim está analisando seus dados...</p>
-                <p className="text-sm text-slate-500">Gerando insights estratégicos personalizados.</p>
+              <div className="absolute inset-0 bg-white/90 backdrop-blur-md z-20 flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-500">
+                <div className="relative w-24 h-24 mb-6">
+                  <div className="absolute inset-0 bg-blue-500 rounded-full opacity-20 animate-ping"></div>
+                  <img src="/assets/lucius.png" alt="Lucius AI" className="w-full h-full rounded-full object-cover border-4 border-white shadow-xl relative z-10" />
+                </div>
+                <p className="text-xl font-bold text-slate-800 animate-pulse">Lucius está processando seus dados...</p>
+                <p className="text-sm text-slate-500 mt-2">Gerando uma estratégia de negócios personalizada.</p>
               </div>
             )}
 
@@ -214,19 +217,43 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ answers, leadData, onN
               {maturityLevel.label.toUpperCase()}
             </h1>
 
-            {aiAnalysis ? (
-              <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm mt-4 max-w-3xl animate-in fade-in slide-in-from-bottom-4 duration-700">
-                <div className="flex items-center justify-center gap-2 mb-3 text-primary font-bold uppercase tracking-widest text-xs">
-                  <Brain className="w-4 h-4" /> Análise Executiva da IA
+            {aiAnalysis && (
+              <div className="bg-white/50 backdrop-blur-sm p-6 md:p-8 rounded-3xl border border-white/60 shadow-xl mt-8 max-w-4xl w-full relative overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-1000">
+                {/* Background decorative glow */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
+
+                <div className="flex flex-col md:flex-row gap-6 items-start text-left relative z-10">
+                  {/* Lucius Avatar & Info */}
+                  <div className="flex-shrink-0 flex flex-col items-center gap-2 md:w-28 mx-auto md:mx-0">
+                    <div className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white shadow-lg overflow-hidden relative">
+                      <img src="/assets/lucius.png" alt="Lucius AI" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="text-center">
+                      <h3 className="font-bold text-slate-900 text-sm">Lucius</h3>
+                      <div className="flex items-center justify-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                        <p className="text-[10px] uppercase tracking-wider text-primary font-bold">Consultor IA</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Message Bubble */}
+                  <div className="flex-grow bg-white rounded-2xl rounded-tl-none p-6 md:p-8 relative border border-slate-100 shadow-sm">
+                    <div className="absolute top-0 -left-2 w-4 h-4 bg-white transform rotate-45 border-l border-b border-slate-100 hidden md:block"></div>
+
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-widest">
+                        <Brain className="w-4 h-4" /> Análise Executiva
+                      </div>
+                      <span className="text-[10px] text-slate-400 font-mono">GERADO VIA GOOGLE GEMINI</span>
+                    </div>
+
+                    <div className="text-slate-700 text-lg leading-relaxed italic prose prose-slate max-w-none">
+                      "{aiAnalysis.executiveSummary}"
+                    </div>
+                  </div>
                 </div>
-                <p className="text-slate-700 text-lg leading-relaxed italic">
-                  "{aiAnalysis.executiveSummary}"
-                </p>
               </div>
-            ) : (
-              <p className="text-slate-600 max-w-2xl text-lg mt-2">
-                Com base na análise de {globalScore} pontos, sua empresa apresenta um perfil de {maturityLevel.label.toLowerCase()}.
-              </p>
             )}
           </div>
 

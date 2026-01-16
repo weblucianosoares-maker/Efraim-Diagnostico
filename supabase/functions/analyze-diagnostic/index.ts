@@ -23,6 +23,8 @@ serve(async (req) => {
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         )
 
+        const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+
         // 1. Upsert Client (if email exists)
         let clientId = null;
         let clientErrorLog = null;
@@ -71,51 +73,60 @@ serve(async (req) => {
 
         // 3. AI Analysis (Generative Step) - WRAPPED IN TRY/CATCH
         let aiAnalysis = null;
-        try {
-            const prompt = `
-          Você é um Consultor de Negócios de Elite.
-          DADOS DA EMPRESA:
-          Nome: ${companyName || "Empresa"}
-          Nota Global: ${globalScore}/100
-          
-          ÁREAS:
-          ${areas.map((a: any) => `- ${a.name}: ${a.score}`).join('\n')}
+        if (GEMINI_API_KEY) {
+            try {
+                const prompt = `
+              Você é LUCIUS, um Consultor de Negócios de Elite e Estrategista de IA.
+              Sua missão é analisar diagnósticos empresariais e fornecer clareza imediata e estratégica.
+              
+              PERSONALIDADE:
+              - Visionário, direto e altamente profissional.
+              - Use uma linguagem executiva, mas acessível.
+              - Seja encorajador, mas realista sobre os problemas.
+              
+              DADOS DA EMPRESA:
+              Nome: ${companyName || "Empresa"}
+              Nota Global: ${globalScore}/100
+              
+              ÁREAS E PONTUAÇÃO:
+              ${areas.map((a: any) => `- ${a.name}: ${a.score}`).join('\n')}
+    
+              INSTRUÇÕES DE SAÍDA:
+              1. Resumo Executivo (3 linhas max): Uma análise estratégica de alto nível sobre a maturidade atual.
+              2. 3 Áreas Críticas: Para as 3 áreas com menores notas, dê 1 conselho tático e acionável ('quick win').
+              3. Frase Motivacional: Uma frase final poderosa, no estilo "Lucius", inspirando ação e crescimento.
+    
+              FORMATO JSON OBRIGATÓRIO:
+              {
+                "executiveSummary": "texto...",
+                "topCriticalAreas": [
+                  { "areaName": "nome", "advice": "conselho..." }
+                ],
+                "closingMotivation": "frase..."
+              }
+            `
 
-          INSTRUÇÕES:
-          1. Resumo Executivo (3 linhas max): Avaliação dura mas construtiva.
-          2. 3 Áreas Críticas (menores notas): 1 conselho prático para cada.
-          3. Frase motivacional final.
-
-          FORMATO JSON:
-          {
-            "executiveSummary": "texto",
-            "topCriticalAreas": [
-              { "areaName": "nome", "advice": "texto" }
-            ],
-            "closingMotivation": "texto"
-          }
-        `
-
-            // Using gemini-1.5-flash as originally intended
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }]
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
                 })
-            })
 
-            const data = await response.json()
-            if (!response.ok) {
-                console.error("Gemini API Error (Non-fatal):", data);
-                // We allow normal flow to continue so data is saved even if AI fails
-            } else {
-                let aiText = data.candidates[0].content.parts[0].text
-                aiText = aiText.replace(/```json/g, '').replace(/```/g, '').trim()
-                aiAnalysis = JSON.parse(aiText)
+                const data = await response.json()
+                if (!response.ok) {
+                    console.error("Gemini API Error (Non-fatal):", data);
+                } else {
+                    let aiText = data.candidates[0].content.parts[0].text
+                    aiText = aiText.replace(/```json/g, '').replace(/```/g, '').trim()
+                    aiAnalysis = JSON.parse(aiText)
+                }
+            } catch (aiError) {
+                console.error("AI Generation Logic Error (Non-fatal):", aiError)
             }
-        } catch (aiError) {
-            console.error("AI Generation Logic Error (Non-fatal):", aiError)
+        } else {
+            console.warn("GEMINI_API_KEY not set.");
         }
 
         // 4. Update Diagnostic Record (Completed)
@@ -124,9 +135,9 @@ serve(async (req) => {
                 .from('diagnostics')
                 .update({
                     ai_analysis: aiAnalysis || {
-                        executiveSummary: "A análise de IA está temporariamente indisponível. Seus dados foram salvos com sucesso.",
+                        executiveSummary: "A conexão com Lucius está temporariamente indisponível. Seus dados foram salvos com segurança.",
                         topCriticalAreas: [],
-                        closingMotivation: "Continue focado na melhoria constante."
+                        closingMotivation: "Continue focado na evolução."
                     },
                     status: 'completed'
                 })
@@ -135,9 +146,9 @@ serve(async (req) => {
 
         // Return success even if AI failed, but include AI result if available
         const fallbackResponse = {
-            executiveSummary: "A análise de IA está temporariamente indisponível. Seus dados foram salvos com sucesso.",
+            executiveSummary: "A conexão com Lucius está temporariamente indisponível. Seus dados foram salvos com segurança.",
             topCriticalAreas: [],
-            closingMotivation: "Continue focado na melhoria constante da sua gestão."
+            closingMotivation: "Continue focado na evolução."
         };
 
         return new Response(
