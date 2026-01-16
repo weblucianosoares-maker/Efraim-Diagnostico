@@ -63,8 +63,9 @@ export const QuizPage: React.FC<QuizPageProps> = ({ onFinish, teamSize }) => {
     if (!showLeadForm) {
       const mainContent = document.getElementById('main-content');
       if (mainContent) mainContent.scrollTop = 0;
-      window.scrollTo(0, 0);
     }
+    // Always scroll window to top on section change OR when lead form appears
+    window.scrollTo(0, 0);
   }, [currentSectionIndex, showLeadForm]);
 
   const handleOptionSelect = (questionId: string, value: number) => {
