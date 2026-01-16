@@ -25,6 +25,7 @@ serve(async (req) => {
 
         // 1. Upsert Client (if email exists)
         let clientId = null;
+        let clientErrorLog = null;
         if (leadData?.email) {
             const { data: client, error: clientError } = await supabaseAdmin
                 .from('clients')
@@ -38,12 +39,16 @@ serve(async (req) => {
                 .select()
                 .single()
 
-            if (clientError) console.error('Client DB Error:', clientError)
+            if (clientError) {
+                console.error('Client DB Error:', clientError)
+                clientErrorLog = clientError;
+            }
             if (client) clientId = client.id
         }
 
         // 2. Insert Diagnostic Record (Processing)
         let diagnosticId = null;
+        let diagErrorLog = null;
         const { data: diagnostic, error: diagError } = await supabaseAdmin
             .from('diagnostics')
             .insert({
@@ -58,7 +63,10 @@ serve(async (req) => {
             .select()
             .single()
 
-        if (diagError) console.error('Diagnostic DB Error:', diagError)
+        if (diagError) {
+            console.error('Diagnostic DB Error:', diagError)
+            diagErrorLog = diagError;
+        }
         if (diagnostic) diagnosticId = diagnostic.id
 
         // 3. AI Analysis (Generative Step) - WRAPPED IN TRY/CATCH
@@ -126,8 +134,14 @@ serve(async (req) => {
         }
 
         // Return success even if AI failed, but include AI result if available
+        const fallbackResponse = {
+            executiveSummary: "A análise de IA está temporariamente indisponível. Seus dados foram salvos com sucesso.",
+            topCriticalAreas: [],
+            closingMotivation: "Continue focado na melhoria constante da sua gestão."
+        };
+
         return new Response(
-            JSON.stringify(aiAnalysis || { message: "Data saved, AI unavailable" }),
+            JSON.stringify(aiAnalysis || fallbackResponse),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
 
